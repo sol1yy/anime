@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мой аниме-трекер</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg: #242424;
+            --text-main: #f0f0f0;
+            --text-muted: #9e9e9e;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 204, 102, 0.4);
+            --glow: rgba(255, 204, 102, 0.2);
+            --glow-active: rgba(255, 204, 102, 0.4);
+            --accent: #ffcc66;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            padding-bottom: 90px;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, p { margin: 0; }
+
+        .container {
+            padding: 20px 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .header-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* Стеклянные кнопки */
+        .glass-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            color: var(--text-main);
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--glow), inset 0 0 10px rgba(255, 204, 102, 0.05);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .glass-btn:active {
+            box-shadow: 0 0 25px var(--glow-active), inset 0 0 15px rgba(255, 204, 102, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+            transform: scale(0.97);
+        }
+
+        /* Формы */
+        .form-group { margin-bottom: 15px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 14px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-full { width: 100%; margin-top: 10px; }
+
+        /* Карточки аниме */
+        .anime-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        .anime-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            padding-right: 30px;
+        }
+
+        .anime-info {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            opacity: 0.7;
+        }
+
+        .delete-btn:active { opacity: 1; }
+
+        /* Прогресс-бар */
+        .progress-container {
+            height: 6px;
+            background: #111;
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--glow);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Блок со временем */
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            background: rgba(0,0,0,0.15);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        
+        .time-info span { color: var(--text-main); font-weight: 600; }
+
+        /* Статусы */
+        .status-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .status-btn {
+            flex: 1;
+            min-width: 40%;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid #444;
+            color: var(--text-muted);
+            border-radius: 10px;
+            padding: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .status-btn.active {
+            background: rgba(255, 204, 102, 0.1);
+            border-color: var(--glass-border);
+            color: var(--accent);
+            box-shadow: 0 0 10px var(--glow);
+        }
+
+        /* Управление сериями */
+        .eps-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .eps-btn { padding: 10px 15px; font-size: 18px; flex: 0 0 auto; }
+
+        .eps-counter {
+            flex: 1;
+            text-align: center;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        /* Сетка серий */
+        .episode-list-container {
+            display: none;
+            margin-top: 10px;
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .episode-list-container.show { display: block; }
+
+        .episode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 8px;
+        }
+
+        .ep-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #444;
+            color: var(--text-muted);
+            border-radius: 8px;
+            padding: 8px 0;
+            font-size: 14px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .ep-btn.watched {
+            background: rgba(255, 204, 102, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: inset 0 0 10px var(--glow);
+        }
+
+        /* Нижняя навигация */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid #333;
+            display: flex;
+            padding: 10px 15px;
+            gap: 10px;
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom, 10px);
+        }
+
+        .nav-btn {
+            flex: 1;
+            background: none;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn.active {
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
+            color: var(--accent);
+            box-shadow: 0 0 15px var(--glow);
+        }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 40px;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Секция 1: Добавление -->
+        <section id="add-section" class="section active">
+            <div class="header-title">🎬 Аниме-трекер</div>
+            <div class="header-subtitle">Личный список. Все данные хранятся на устройстве.</div>
+
+            <div class="form-group">
+                <label>Название аниме</label>
+                <input type="text" id="title" placeholder="Например: Твоя апрельская ложь">
+            </div>
+            <div class="form-group">
+                <label>Количество серий</label>
+                <input type="number" id="totalEps" placeholder="24" min="1">
+            </div>
+            <div class="form-group">
+                <label>Длительность серии (в минутах)</label>
+                <input type="number" id="epDuration" placeholder="24" min="1">
+            </div>
+            <button class="glass-btn btn-full" onclick="addAnime()">
+                ✨ Добавить в список
+            </button>
+        </section>
+
+        <!-- Секция 2: Список -->
+        <section id="list-section" class="section">
+            <div class="header-title">📺 Моё аниме</div>
+            <div class="header-subtitle" id="anime-count">Всего аниме: 0</div>
+
+            <div id="anime-list">
+                <!-- Карточки генерируются через JS -->
+            </div>
+            
+            <button class="glass-btn btn-full" style="margin-top: 20px; border-color: #ff6b6b; box-shadow: 0 0 15px rgba(255, 107, 107, 0.15);" onclick="clearAll()">
+                🗑 Очистить всё
+            </button>
+        </section>
+    </div>
+
+    <!-- Нижняя панель навигации -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" id="nav-add" onclick="switchTab('add')">Добавить</button>
+        <button class="nav-btn" id="nav-list" onclick="switchTab('list')">Моё аниме</button>
+    </nav>
+        <script>
+        // Загрузка данных при старте
+        let animes = JSON.parse(localStorage.getItem('animeTrackerData')) || [];
+
+        // --- ИСПРАВЛЕНИЕ: Конвертация старых данных, чтобы кнопка не ломалась ---
+        animes = animes.map(anime => {
+            if (anime.totalEpisodes && !anime.watchedArr) {
+                const watchedArr = new Array(anime.totalEpisodes).fill(false);
+                for (let i = 0; i < (anime.watchedEpisodes || 0); i++) {
+                    watchedArr[i] = true;
+                }
+                return {
+                    id: anime.id ? anime.id.toString() : Date.now().toString(),
+                    title: anime.title,
+                    totalEps: anime.totalEpisodes,
+                    duration: anime.episodeDuration,
+                    watchedArr: watchedArr,
+                    status: anime.status || 'Смотрю'
+                };
+            }
+            return anime;
+        });
+
+        const statuses = [
+            { name: 'Смотрю', icon: '😋' },
+            { name: 'Посмотрел', icon: '🤤' },
+            { name: 'Пересматриваю', icon: '😍' },
+            { name: 'Отложил', icon: '😶' }
+        ];
+
+        function switchTab(tab) {
+            document.getElementById('add-section').classList.remove('active');
+            document.getElementById('list-section').classList.remove('active');
+            document.getElementById('nav-add').classList.remove('active');
+            document.getElementById('nav-list').classList.remove('active');
+
+            if (tab === 'add') {
+                document.getElementById('add-section').classList.add('active');
+                document.getElementById('nav-add').classList.add('active');
+            } else {
+                document.getElementById('list-section').classList.add('active');
+                document.getElementById('nav-list').classList.add('active');
+                renderList();
+            }
+        }
+
+        function formatTime(totalMinutes) {
+            if (totalMinutes === 0) return "0 мин";
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            let result = "";
+            if (hours > 0) result += `${hours} ч `;
+            if (minutes > 0) result += `${minutes} мин`;
+            return result.trim();
+        }
+
+        function addAnime() {
+            const titleInput = document.getElementById('title');
+            const totalInput = document.getElementById('totalEps');
+            const durationInput = document.getElementById('epDuration');
+
+            const title = titleInput.value.trim();
+            const totalEps = parseInt(totalInput.value);
+            const duration = parseInt(durationInput.value);
+
+            if (!title || isNaN(totalEps) || totalEps <= 0 || isNaN(duration) || duration <= 0) {
+                alert("Пожалуйста, заполни все поля корректно!");
+                return;
+            }
+
+            const watchedArr = new Array(totalEps).fill(false);
+
+            const newAnime = {
+                id: Date.now().toString(),
+                title: title,
+                totalEps: totalEps,
+                duration: duration,
+                watchedArr: watchedArr,
+                status: statuses[0].name
+            };
+
+            animes.push(newAnime);
+            saveData();
+
+            titleInput.value = '';
+            totalInput.value = '';
+            durationInput.value = '';
+
+            switchTab('list');
+        }
+
+        function saveData() {
+            localStorage.setItem('animeTrackerData', JSON.stringify(animes));
+        }
+
+        function renderList() {
+            const container = document.getElementById('anime-list');
+            document.getElementById('anime-count').textContent = `Всего аниме: ${animes.length}`;
+            
+            if (animes.length === 0) {
+                container.innerHTML = '<div class="empty-state">Тут пока пусто. Добавь своё первое аниме! 😴</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            animes.forEach((anime) => {
+                const watchedArr = anime.watchedArr || [];
+                const totalEps = anime.totalEps || 1;
+                const duration = anime.duration || 0;
+
+                const watchedCount = watchedArr.filter(Boolean).length;
+                const percent = Math.round((watchedCount / totalEps) * 100);
+                
+                const totalTime = totalEps * duration;
+                const watchedTime = watchedCount * duration;
+                const remainingTime = totalTime - watchedTime;
+
+                let episodesHtml = '';
+                for (let i = 0; i < totalEps; i++) {
+                    const isWatched = watchedArr[i] ? 'watched' : '';
+                    episodesHtml += `<div class="ep-btn ${isWatched}" onclick="toggleEpisode('${anime.id}', ${i})">${i + 1}</div>`;
+                }
+
+                let statusHtml = '';
+                statuses.forEach(st => {
+                    const isActive = anime.status === st.name ? 'active' : '';
+                    statusHtml += `<button class="status-btn ${isActive}" onclick="changeStatus('${anime.id}', '${st.name}')">${st.icon} ${st.name}</button>`;
+                });
+
+                const card = document.createElement('div');
+                card.className = 'anime-card';
+                card.innerHTML = `
+                    <button class="delete-btn" onclick="deleteAnime('${anime.id}')">✕</button>
+                    <div class="anime-title">${anime.title}</div>
+                    <div class="anime-info">${totalEps} сер. · ${duration} мин/сер.</div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: ${percent}%"></div>
+                    </div>
+                    
+                    <div class="time-info">
+                        <div>Посмотрел: <span>${formatTime(watchedTime)}</span></div>
+                        <div>Осталось: <span>${formatTime(remainingTime)}</span></div>
+                    </div>
+
+                    <div class="eps-control">
+                        <button class="glass-btn eps-btn" onclick="changeEp('${anime.id}', -1)">-1</button>
+                        <div class="eps-counter">${watchedCount} из ${totalEps} (${percent}%)</div>
+                        <button class="glass-btn eps-btn" onclick="changeEp('${anime.id}', 1)">+1</button>
+                    </div>
+
+                    <button class="glass-btn btn-full" style="margin-bottom: 10px; font-size: 13px; padding: 8px;" onclick="toggleEpisodeList('${anime.id}')">
+                        📑 Выбрать конкретную серию
+                    </button>
+                    <div id="ep-list-${anime.id}" class="episode-list-container">
+                        <div class="episode-grid">${episodesHtml}</div>
+                    </div>
+
+                    <div class="status-row">
+                        ${statusHtml}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteAnime(id) {
+            if (confirm('Удалить это аниме?')) {
+                animes = animes.filter(a => a.id !== id);
+                saveData();
+                renderList();
+            }
+        }
+
+        function changeStatus(id, newStatus) {
+            const anime = animes.find(a => a.id === id);
+            if (anime) {
+                anime.status = newStatus;
+                saveData();
+                renderList();
+            }
+        }
+
+        function changeEp(id, change) {
+            const anime = animes.find(a => a.id === id);
+            if (!anime) return;
+
+            if (change > 0) {
+                const nextUnwatchedIndex = anime.watchedArr.indexOf(false);
+                if (nextUnwatchedIndex !== -1) anime.watchedArr[nextUnwatchedIndex] = true;
+            } else {
+                const lastWatchedIndex = anime.watchedArr.lastIndexOf(true);
+                if (lastWatchedIndex !== -1) anime.watchedArr[lastWatchedIndex] = false;
+            }
+            
+            if (anime.watchedArr.every(v => v === true)) anime.status = 'Посмотрел';
+            else if (anime.watchedArr.some(v => v === true) && anime.status === 'Посмотрел') anime.status = 'Смотрю';
+
+            saveData();
+            renderList();
+        }
+
+        function toggleEpisode(id, epIndex) {
+            const anime = animes.find(a => a.id === id);
+            if (!anime) return;
+
+            anime.watchedArr[epIndex] = !anime.watchedArr[epIndex];
+            
+            if (anime.watchedArr.every(v => v === true)) anime.status = 'Посмотрел';
+            else if (anime.watchedArr.some(v => v === true) && anime.status === 'Посмотрел') anime.status = 'Смотрю';
+
+            saveData();
+            renderList();
+            document.getElementById(`ep-list-${id}`).classList.add('show');
+        }
+
+        function toggleEpisodeList(id) {
+            const el = document.getElementById(`ep-list-${id}`);
+            el.classList.toggle('show');
+        }
+
+        function clearAll() {
+            if (confirm('Ты уверен, что хочешь удалить ВСЕ аниме безвозвратно?')) {
+                animes = [];
+                saveData();
+                renderList();
+            }
+        }
+
+        // Инициализация при запуске
+        if (animes.length > 0) {
+            switchTab('list');
+        } else {
+            switchTab('add');
+        }
+    </script>
+</body>
+</html>
